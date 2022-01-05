@@ -13,15 +13,16 @@ SDL_Renderer* renderer;
 SDL_Window* window;
 TTF_Font* font;
 SDL_Color color;
-bool running;
 SDL_Color White = {255, 255, 255};
 SDL_Color Black = {0, 0, 0};
 unsigned int tick1 = SDL_GetTicks();
 unsigned int tick2 = SDL_GetTicks();
+bool running;
 double delta;
 SDL_Rect statusBar = {0, HEIGHT-BARHEIGHT, WIDTH, BARHEIGHT};
 
 std::string inputStr = "";
+int speed = SPEED;
 int score = 0;
 int hp = HP;
 float wpm;
@@ -42,6 +43,8 @@ void update() {
     }
 
     wpm = (float)score/(float)((float)tick2/60000.0);
+    speed += ACC;
+
     while (wordsList.size() < 15) {
         Word temp;
         temp.text = getLine();
@@ -56,7 +59,7 @@ void update() {
             hp--;
             continue;
         }
-        word.x += SPEED;
+        word.x += floor((float)SPEED/1000.0);
         tempList.push_back(word);
     }
     wordsList = tempList;
@@ -91,7 +94,8 @@ void input() {
                         checkInput();
                         break;
                     case SDLK_BACKSPACE:
-                        inputStr.pop_back();
+                        if (inputStr.length() > 0)
+                            inputStr.pop_back();
                         break;
                     default:
                         break;
@@ -168,11 +172,12 @@ int main() {
             input();
             render();
         }
-
     }
 
     TTF_CloseFont(font);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
+
+    return 0;
 }
