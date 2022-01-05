@@ -31,7 +31,11 @@ class Word {
     public:
         int x, y;
         std::string text;
-        //Word(std::string t, int x1, int y1)
+        Word(int x, int y, std::string text) {
+            this->x = x;
+            this->y = y;
+            this->text = text;
+        }
 };
 
 std::vector<Word> wordsList;
@@ -46,10 +50,7 @@ void update() {
     speed += ACC;
 
     while (wordsList.size() < 15) {
-        Word temp;
-        temp.text = getLine();
-        temp.x = randomNumber(0, 150);
-        temp.y = randomNumber(0, HEIGHT - 100);
+        Word temp(randomNumber(0, 150), randomNumber(0, HEIGHT - 100), getLine());
         wordsList.push_back(temp);
     }
 
