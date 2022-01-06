@@ -8,6 +8,7 @@
 #include <utility>
 #include "main.h"
 #include "words.h"
+#include "save.h"
 
 SDL_Renderer* renderer;
 SDL_Window* window;
@@ -43,6 +44,7 @@ std::vector<Word> wordsList;
 void update() {
     if (hp <= 0) {
         running = false;
+        save(wpm, (float)tick2/1000.0);
         std::cout << "You lost, wpm: " + std::to_string(wpm) <<std::endl;
     }
 
@@ -160,6 +162,8 @@ int main() {
     if (TTF_Init() < 0)
         std::cout << "Failed at TTF_Init" << TTF_GetError() << std::endl;
     running = true;
+
+    SDL_SetWindowTitle(window, "WPM");
 
     while (running) {
         Uint64 start = SDL_GetPerformanceCounter();
