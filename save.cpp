@@ -10,7 +10,11 @@ int save(float wpm, float time)
     std::time_t end_time = std::chrono::system_clock::to_time_t(end);
 
     std::fstream file;
+#ifdef __EMSCRIPTEN__
+    if (!(std::__fs::filesystem::exists(SAVE_PATH))){
+#else 
     if (!(std::filesystem::exists(SAVE_PATH))){
+#endif
         file.open(SAVE_PATH, std::ios::out);
         file.close();
     }

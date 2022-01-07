@@ -1,6 +1,13 @@
+#ifdef __EMSCRIPTEN__
+#include <SDL.h>
+#include <SDL_ttf.h>
+#include <SDL_image.h>
+#include <emscripten.h>
+#else
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_image.h>
+#endif
 #include <iostream>
 #include <array>
 #include <charconv>
@@ -47,9 +54,15 @@ std::vector<Word> wordsList;
 
 void update() {
     if (hp <= 0) {
-        running = false;
         save(wpm, (float)tick2/1000.0);
+#ifndef __EMSCRIPTEN__
+        running = false;
         std::cout << "You lost, wpm: " + std::to_string(wpm) <<std::endl;
+#else
+        emscripten_cancel_main_loop();
+        running = false;
+        std::cout << "You lost, wpm: " + std::to_string(wpm) <<std::endl;
+#endif
     }
 
     wpm = (float)score/(float)((float)tick2/60000.0);
@@ -161,7 +174,7 @@ void write(std::string str, int x, int y, SDL_Color color, bool colorTyped = fal
 }
 
 void render() {
-    SDL_SetRenderDrawColor(renderer, 0xFB, 0xF1, 0xC7, 255);
+    SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 255);
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, imgTexture, NULL, NULL);
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 255);
@@ -176,6 +189,20 @@ void render() {
     SDL_RenderPresent(renderer);
 }
 
+void main_loop() {
+    Uint64 start = SDL_GetPerformanceCounter();
+    tick2 = SDL_GetTicks();
+
+    delta = tick2 - tick1;
+
+    if (delta > 1000.0/(float)FPS) {
+        tick1 = SDL_GetTicks();
+        update();
+        input();
+        render();
+    }
+}
+
 int main() {
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0)
         std::cout << "Failed at SDL_Init()" <<  std::endl;
@@ -183,37 +210,28 @@ int main() {
         std::cout << "Failed at SDL_CreateWindowAndRenderer()" << std::endl;
     if (TTF_Init() < 0)
         std::cout << "Failed at TTF_Init" << TTF_GetError() << std::endl;
+//#ifndef __EMSCRIPTEN__
     if (IMG_Init(IMG_INIT_PNG) != IMG_INIT_PNG)
         std::cout << "Failed at IMG_Init" << IMG_GetError() << std::endl;
+//#endif
 
     running = true;
 
     SDL_SetWindowTitle(window, "WPM");
-
     SDL_Surface* image = IMG_Load( BG_PATH );
-
     imgTexture = SDL_CreateTextureFromSurface(renderer, image);
-
     SDL_FreeSurface(image);
     
     if (!image) {
         std::cout << "Failed at IMG_Load" << IMG_GetError() << std::endl;
     }
 
-    while (running) {
-        Uint64 start = SDL_GetPerformanceCounter();
-        tick2 = SDL_GetTicks();
-
-        delta = tick2 - tick1;
-
-        if (delta > 1000.0/(float)FPS) {
-            tick1 = SDL_GetTicks();
-            update();
-            input();
-            render();
-        }
-    }
-
+    #ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop(main_loop, 0, 1);
+    #else
+    while (running)
+        main_loop();
+    #endif
     TTF_CloseFont(font);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);

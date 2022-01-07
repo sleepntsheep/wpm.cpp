@@ -17,6 +17,5 @@ clean:
 	rm -f *.o
 	rm save.txt
 
-window: main.cpp
-	$(MW) main.cpp words.cpp -o program $(CFLAGS) -ISDL2-2.0.18/include -ISDL2_ttf-2.0.15/include -lmingw32 -lSDL2_ttf -lSDL2 -LSDL2_ttf-2.0.15/lib -Wl,-rpath,SDL2_ttf-2.0.15/lib
-	
+wasm: main.cpp
+	emcc --shell-file template.html main.cpp words.cpp save.cpp -o index.html -s USE_SDL=2 -s USE_SDL_TTF=2 -s USE_SDL_IMAGE=2 -s SDL2_IMAGE_FORMATS='[png]' --embed-file resource -use-preload-plugins

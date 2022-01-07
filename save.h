@@ -5,7 +5,7 @@
 #include <chrono>
 #include <ctime>
 
-#define SAVE_PATH "save.txt"
+#define SAVE_PATH "./save.txt"
 
 int save(float wpm, float time);
 #endif
